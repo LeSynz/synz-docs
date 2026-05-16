@@ -2,6 +2,8 @@
 
 A Bun-native Hono middleware that generates a full docs site from a folder of markdown files. No build step, no config files — just point it at a directory and go.
 
+Live Showcase Available at [labs.synz.xyz/showcase/docs](https://labs.synz.xyz/showcase/docs)
+
 ```typescript
 import { docs } from 'synz-docs'
 
