@@ -1,0 +1,19 @@
+{
+  "name": "synz-docs",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^25.8.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "hono": "^4.12.19",
+    "marked": "^18.0.3",
+    "shiki": "^4.0.2"
+  }
+}
