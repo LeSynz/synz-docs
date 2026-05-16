@@ -10,12 +10,16 @@ export interface DocsConfig {
 }
 
 export interface ThemeConfig {
-    /** Primary accent color (default: '#39ff6a') */
+    /** Primary accent color (default: '#58a6ff') */
     accentColor?: string
     /** Site logo text (default: same as title) */
     logo?: string
     /** Show/hide the theme toggle (default: false — always dark) */
     lightMode?: boolean
+    /** Raw CSS variable overrides injected into :root */
+    vars?: Record<string, string>
+    /** Arbitrary CSS injected after base styles */
+    customCss?: string
 }
 
 export interface NavItem {
@@ -27,6 +31,8 @@ export interface NavItem {
     children?: NavItem[]
     /** Sort order from frontmatter */
     order?: number
+    /** Parent section label for prev/next navigation */
+    parentLabel?: string
 }
 
 export interface ParsedDoc {

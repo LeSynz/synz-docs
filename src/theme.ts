@@ -1,5 +1,13 @@
 import type { NavItem, DocsConfig } from './types'
 
+function flattenNav(items: NavItem[], parentLabel = ''): NavItem[] {
+    return items.flatMap(item =>
+        item.children
+            ? flattenNav(item.children, item.label)
+            : [{ ...item, parentLabel }]
+    )
+}
+
 function renderNavItems(items: NavItem[], currentPath: string, depth = 0): string {
     return items.map(item => {
         if (item.children && item.children.length > 0) {
@@ -29,6 +37,15 @@ export function renderPage(options: {
     const { content, nav, title, currentPath, config } = options
     const accent = config.theme?.accentColor || '#58a6ff'
     const logo = config.theme?.logo || config.title
+    const customVars = config.theme?.vars
+        ? Object.entries(config.theme.vars).map(([k, v]) => `        ${k}: ${v};`).join('\n')
+        : ''
+    const customCss = config.theme?.customCss || ''
+
+    const flat = flattenNav(nav).filter(item => item.path)
+    const currentIndex = flat.findIndex(item => item.path === currentPath)
+    const prev = flat[currentIndex - 1] ?? null
+    const next = flat[currentIndex + 1] ?? null
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -51,9 +68,9 @@ export function renderPage(options: {
             --text: #e6edf3;
             --text-secondary: #8b949e;
             --text-tertiary: #6e7681;
-            --code-bg: #161b22;
             --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+${customVars}
         }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -68,7 +85,6 @@ export function renderPage(options: {
             -webkit-font-smoothing: antialiased;
         }
 
-        /* HEADER */
         header {
             position: fixed;
             top: 0; left: 0; right: 0;
@@ -89,9 +105,6 @@ export function renderPage(options: {
             color: var(--text);
             text-decoration: none;
             letter-spacing: -0.01em;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
         }
 
         .header-logo .logo-accent { color: var(--accent); }
@@ -108,14 +121,12 @@ export function renderPage(options: {
             font-weight: 400;
         }
 
-        /* LAYOUT */
         .layout {
             display: flex;
             padding-top: 64px;
             min-height: 100vh;
         }
 
-        /* SIDEBAR */
         .sidebar {
             width: 272px;
             flex-shrink: 0;
@@ -171,20 +182,15 @@ export function renderPage(options: {
             font-weight: 500;
         }
 
-        /* CONTENT */
         .content {
             flex: 1;
             margin-left: 272px;
             padding: 2.5rem 3rem 5rem;
-            max-width: calc(272px + 780px);
             min-width: 0;
         }
 
-        .doc-content {
-            max-width: 720px;
-        }
+        .doc-content { max-width: 720px; }
 
-        /* MARKDOWN */
         .doc-content h1 {
             font-size: 1.875rem;
             font-weight: 700;
@@ -333,11 +339,56 @@ export function renderPage(options: {
             margin: 2rem 0;
         }
 
-        /* RESPONSIVE */
+        /* PREV / NEXT */
+        .doc-nav-footer {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-subtle);
+            max-width: 720px;
+        }
+
+        .doc-nav-btn {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            padding: 0.875rem 1.25rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-decoration: none;
+            transition: border-color 0.15s, background 0.15s;
+            max-width: 48%;
+        }
+
+        .doc-nav-btn:hover {
+            border-color: var(--accent);
+            background: var(--accent-subtle);
+            text-decoration: none;
+        }
+
+        .doc-nav-next { text-align: right; margin-left: auto; }
+
+        .doc-nav-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            font-weight: 500;
+        }
+
+        .doc-nav-title {
+            font-size: 0.875rem;
+            color: var(--accent);
+            font-weight: 500;
+        }
+
         @media (max-width: 768px) {
             .sidebar { display: none; }
             .content { margin-left: 0; padding: 2rem 1.25rem; }
+            .doc-nav-btn { max-width: 100%; }
         }
+
+        ${customCss}
     </style>
 </head>
 <body>
@@ -359,6 +410,16 @@ export function renderPage(options: {
         <main class="content">
             <div class="doc-content">
                 ${content}
+            </div>
+            <div class="doc-nav-footer">
+                ${prev ? `<a href="${prev.path}" class="doc-nav-btn doc-nav-prev">
+                    <span class="doc-nav-label">← Previous</span>
+                    <span class="doc-nav-title">${prev.parentLabel ? `${prev.parentLabel} / ` : ''}${prev.label}</span>
+                </a>` : '<div></div>'}
+                ${next ? `<a href="${next.path}" class="doc-nav-btn doc-nav-next">
+                    <span class="doc-nav-label">Next →</span>
+                    <span class="doc-nav-title">${next.parentLabel ? `${next.parentLabel} / ` : ''}${next.label}</span>
+                </a>` : '<div></div>'}
             </div>
         </main>
     </div>
