@@ -1,18 +1,29 @@
 {
   "name": "synz-docs",
-  "module": "index.ts",
+  "version": "0.1.0",
+  "description": "A Hono middleware that generates a docs site from markdown files",
+  "module": "src/index.ts",
+  "main": "src/index.ts",
   "type": "module",
-  "private": true,
+  "private": false,
+  "keywords": [
+    "hono",
+    "docs",
+    "markdown",
+    "middleware"
+  ],
+  "author": "LeSynz",
+  "license": "MIT",
   "devDependencies": {
     "@types/bun": "latest",
     "@types/node": "^25.8.0"
   },
   "peerDependencies": {
-    "typescript": "^5"
+    "typescript": "^5",
+    "hono": "^4"
   },
   "dependencies": {
     "gray-matter": "^4.0.3",
-    "hono": "^4.12.19",
     "marked": "^18.0.3",
     "shiki": "^4.0.2"
   }
