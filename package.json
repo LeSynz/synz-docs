@@ -1,7 +1,7 @@
 {
   "name": "synz-docs",
-  "version": "0.2.0",
-  "description": "A Hono middleware that generates a docs site from markdown files",
+  "version": "0.3.0",
+  "description": "A Bun-native Hono middleware that generates a docs site from markdown files",
   "module": "src/index.ts",
   "main": "src/index.ts",
   "type": "module",

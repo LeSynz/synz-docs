@@ -40,10 +40,91 @@ export function renderPage(options: {
     const preset = presets[config.theme?.preset || 'default']
     const accent = config.theme?.accentColor || preset.accent
     const logo = config.theme?.logo || config.title
+    const isSynz = (config.theme?.preset || 'default') === 'synz'
+    const headerRight = config.version
+        ? `<span class="header-version">${config.version}</span>`
+        : `<div class="header-divider"></div><span class="header-title">${config.subtitle || 'docs'}</span>`
     const customVars = config.theme?.vars
         ? Object.entries(config.theme.vars).map(([k, v]) => `        ${k}: ${v};`).join('\n')
         : ''
     const customCss = config.theme?.customCss || ''
+
+    const synzFont = isSynz
+        ? `<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">`
+        : `<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">`
+
+    const fontVars = isSynz
+        ? `--font: 'Share Tech Mono', monospace;
+            --font-mono: 'Share Tech Mono', monospace;
+            --font-display: 'Syne', sans-serif;`
+        : `--font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;`
+
+    const synzExtras = isSynz ? `
+        body { cursor: crosshair; }
+
+        .scanlines {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.08) 2px,
+                rgba(0,0,0,0.08) 4px
+            );
+        }
+
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 48px 48px;
+            opacity: 0.5;
+        }
+
+        header {
+            background: rgba(8,10,8,0.92) !important;
+        }
+
+        .header-logo .logo-accent {
+            font-family: var(--font-display);
+            font-weight: 800;
+            letter-spacing: 0.15em;
+        }
+
+        .nav-link.active {
+            border-left: 2px solid var(--accent);
+            color: var(--accent);
+            background: transparent;
+        }
+
+        .doc-content h1 {
+            font-family: var(--font-display);
+            font-weight: 800;
+        }
+
+        .doc-content h2 {
+            font-family: var(--font-display);
+            font-weight: 700;
+        }
+
+        .doc-content code {
+            color: var(--accent);
+        }
+
+        .doc-content .shiki {
+            background: var(--bg-secondary) !important;
+        }
+    ` : ''
+
+    const synzHtml = isSynz ? `<div class="scanlines"></div><div class="grid-bg"></div>` : ''
 
     const flat = flattenNav(nav).filter(item => item.path)
     const currentIndex = flat.findIndex(item => item.path === currentPath)
@@ -57,7 +138,7 @@ export function renderPage(options: {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title} — ${config.title}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    ${synzFont}
     <style>
         :root {
             --accent: ${accent};
@@ -71,8 +152,7 @@ export function renderPage(options: {
             --text: ${preset.text};
             --text-secondary: ${preset.textSecondary};
             --text-tertiary: ${preset.textTertiary};
-            --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+            ${fontVars}
 ${customVars}
         }
 
@@ -390,16 +470,27 @@ ${customVars}
             .doc-nav-btn { max-width: 100%; }
         }
 
+        .header-version {
+            font-size: 0.65rem;
+            color: var(--text-tertiary);
+            border: 1px solid var(--border);
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            letter-spacing: 0.05em;
+            font-family: var(--font-mono);
+        }
+
         ${customCss}
+        ${synzExtras}
     </style>
 </head>
 <body>
+    ${synzHtml}
     <header>
         <a href="${config.basePath || '/docs'}" class="header-logo">
             <span class="logo-accent">${logo}</span>
         </a>
-        <div class="header-divider"></div>
-        <span class="header-title">docs</span>
+        ${headerRight}
     </header>
 
     <div class="layout">
@@ -416,11 +507,11 @@ ${customVars}
             <div class="doc-nav-footer">
                 ${prev ? `<a href="${prev.path}" class="doc-nav-btn doc-nav-prev">
                     <span class="doc-nav-label">← Previous</span>
-                    <span class="doc-nav-title">${prev.parentLabel ? `${prev.parentLabel} / ` : ''}${prev.label}</span>
+                    <span class="doc-nav-title">${prev.parentLabel ? `${prev.parentLabel} - ` : ''}${prev.label}</span>
                 </a>` : '<div></div>'}
                 ${next ? `<a href="${next.path}" class="doc-nav-btn doc-nav-next">
                     <span class="doc-nav-label">Next →</span>
-                    <span class="doc-nav-title">${next.parentLabel ? `${next.parentLabel} / ` : ''}${next.label}</span>
+                    <span class="doc-nav-title">${next.parentLabel ? `${next.parentLabel} - ` : ''}${next.label}</span>
                 </a>` : '<div></div>'}
             </div>
         </main>

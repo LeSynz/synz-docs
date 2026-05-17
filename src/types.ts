@@ -5,11 +5,15 @@ export interface DocsConfig {
     title: string
     /** Base path the middleware is mounted on (default: '/docs') */
     basePath?: string
+    /** Subtitle shown next to the logo in the header (default: 'docs') */
+    subtitle?: string
+    /** Version badge shown instead of subtitle (e.g. 'v1.0.0') */
+    version?: string
     /** Theme overrides */
     theme?: ThemeConfig
 }
 
-export type ThemePreset = 'default' | 'catppuccin' | 'nord' | 'rose-pine'
+export type ThemePreset = 'default' | 'catppuccin' | 'nord' | 'rose-pine' | 'synz'
 
 export interface ThemeConfig {
     /** Built-in theme preset (default: 'default') */

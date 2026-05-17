@@ -56,5 +56,16 @@ export const presets: Record<ThemePreset, ThemeVars> = {
         text: '#e0def4',
         textSecondary: '#908caa',
         textTertiary: '#6e6a86'
+    },
+    synz: {
+        accent: '#39ff6a',
+        bg: '#080a08',
+        bgSecondary: '#0d110d',
+        bgTertiary: '#111a11',
+        border: '#1a2a1a',
+        borderSubtle: '#111a11',
+        text: '#c8d8c8',
+        textSecondary: '#5a7a5a',
+        textTertiary: '#3a5a3a'
     }
 }

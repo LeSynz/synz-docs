@@ -22,8 +22,9 @@ app.route('/docs', docs({
 - Frontmatter support for titles, ordering, and visibility
 - Prev/next page navigation with section labels
 - Anchor links on headings
-- Built-in theme presets (`default`, `catppuccin`, `nord`, `rose-pine`)
+- Built-in theme presets (`default`, `catppuccin`, `nord`, `rose-pine`, `synz`)
 - Fully customisable theme via CSS variables
+- Configurable header subtitle or version badge
 - Zero build step — reads files at startup
 
 ---
@@ -106,7 +107,7 @@ docs({
     dir: './docs',
     title: 'My Project',
     theme: {
-        preset: 'catppuccin'  // 'default' | 'catppuccin' | 'nord' | 'rose-pine'
+        preset: 'catppuccin'  // 'default' | 'catppuccin' | 'nord' | 'rose-pine' | 'synz'
     }
 })
 ```
@@ -129,6 +130,8 @@ docs({
     dir: './docs',           // required — path to markdown files
     title: 'My Project',     // required — shown in header and page titles
     basePath: '/docs',       // optional — base route (default: '/docs')
+    subtitle: 'API Docs',    // optional — text shown next to logo (default: 'docs')
+    version: 'v1.0.0',       // optional — version badge shown instead of subtitle
     theme: {
         preset: 'default',        // optional — built-in theme preset
         accentColor: '#58a6ff',   // optional — overrides preset accent color
@@ -157,6 +160,11 @@ Blockquotes are rendered as styled callout blocks:
 ---
 
 ## changelog
+
+### 0.3.0
+- Added `synz` theme preset — matches the synz.xyz terminal aesthetic
+- Added `subtitle` config option — custom text next to the logo
+- Added `version` config option — shows a version badge instead of subtitle
 
 ### 0.2.0
 - Added built-in theme presets: `default`, `catppuccin`, `nord`, `rose-pine`
