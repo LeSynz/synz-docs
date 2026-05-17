@@ -20,8 +20,9 @@ app.route('/docs', docs({
 - Markdown rendered with syntax highlighting via [Shiki](https://shiki.style)
 - Sidebar navigation auto-generated from your folder structure
 - Frontmatter support for titles, ordering, and visibility
-- Prev/next page navigation
+- Prev/next page navigation with section labels
 - Anchor links on headings
+- Built-in theme presets (`default`, `catppuccin`, `nord`, `rose-pine`)
 - Fully customisable theme via CSS variables
 - Zero build step — reads files at startup
 
@@ -96,6 +97,31 @@ hidden: false
 
 ---
 
+## themes
+
+Pick a built-in preset or build your own.
+
+```typescript
+docs({
+    dir: './docs',
+    title: 'My Project',
+    theme: {
+        preset: 'catppuccin'  // 'default' | 'catppuccin' | 'nord' | 'rose-pine'
+    }
+})
+```
+
+Override just the accent on top of a preset:
+
+```typescript
+theme: {
+    preset: 'nord',
+    accentColor: '#a3be8c'
+}
+```
+
+---
+
 ## configuration
 
 ```typescript
@@ -104,7 +130,8 @@ docs({
     title: 'My Project',     // required — shown in header and page titles
     basePath: '/docs',       // optional — base route (default: '/docs')
     theme: {
-        accentColor: '#58a6ff',   // optional — primary accent color
+        preset: 'default',        // optional — built-in theme preset
+        accentColor: '#58a6ff',   // optional — overrides preset accent color
         logo: 'MY DOCS',          // optional — header logo text (default: title)
         vars: {                    // optional — CSS variable overrides
             '--bg': '#0f0f0f',
@@ -126,6 +153,18 @@ Blockquotes are rendered as styled callout blocks:
 ```markdown
 > This is a callout. Use it for tips, warnings, or notes.
 ```
+
+---
+
+## changelog
+
+### 0.2.0
+- Added built-in theme presets: `default`, `catppuccin`, `nord`, `rose-pine`
+- Prev/next navigation now shows section name when crossing into a new section
+- `accentColor` now overrides preset accent rather than replacing all theme vars
+
+### 0.1.0
+- Initial release
 
 ---
 

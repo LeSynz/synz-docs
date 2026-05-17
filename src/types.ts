@@ -9,13 +9,15 @@ export interface DocsConfig {
     theme?: ThemeConfig
 }
 
+export type ThemePreset = 'default' | 'catppuccin' | 'nord' | 'rose-pine'
+
 export interface ThemeConfig {
-    /** Primary accent color (default: '#58a6ff') */
+    /** Built-in theme preset (default: 'default') */
+    preset?: ThemePreset
+    /** Primary accent color — overrides preset accent */
     accentColor?: string
     /** Site logo text (default: same as title) */
     logo?: string
-    /** Show/hide the theme toggle (default: false — always dark) */
-    lightMode?: boolean
     /** Raw CSS variable overrides injected into :root */
     vars?: Record<string, string>
     /** Arbitrary CSS injected after base styles */

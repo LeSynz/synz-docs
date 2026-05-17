@@ -1,4 +1,5 @@
 import type { NavItem, DocsConfig } from './types'
+import { presets } from './themes'
 
 function flattenNav(items: NavItem[], parentLabel = ''): NavItem[] {
     return items.flatMap(item =>
@@ -35,7 +36,9 @@ export function renderPage(options: {
     config: DocsConfig
 }): string {
     const { content, nav, title, currentPath, config } = options
-    const accent = config.theme?.accentColor || '#58a6ff'
+
+    const preset = presets[config.theme?.preset || 'default']
+    const accent = config.theme?.accentColor || preset.accent
     const logo = config.theme?.logo || config.title
     const customVars = config.theme?.vars
         ? Object.entries(config.theme.vars).map(([k, v]) => `        ${k}: ${v};`).join('\n')
@@ -60,14 +63,14 @@ export function renderPage(options: {
             --accent: ${accent};
             --accent-hover: color-mix(in srgb, ${accent} 80%, white);
             --accent-subtle: color-mix(in srgb, ${accent} 12%, transparent);
-            --bg: #0d1117;
-            --bg-secondary: #161b22;
-            --bg-tertiary: #1c2128;
-            --border: #30363d;
-            --border-subtle: #21262d;
-            --text: #e6edf3;
-            --text-secondary: #8b949e;
-            --text-tertiary: #6e7681;
+            --bg: ${preset.bg};
+            --bg-secondary: ${preset.bgSecondary};
+            --bg-tertiary: ${preset.bgTertiary};
+            --border: ${preset.border};
+            --border-subtle: ${preset.borderSubtle};
+            --text: ${preset.text};
+            --text-secondary: ${preset.textSecondary};
+            --text-tertiary: ${preset.textTertiary};
             --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 ${customVars}
@@ -339,7 +342,6 @@ ${customVars}
             margin: 2rem 0;
         }
 
-        /* PREV / NEXT */
         .doc-nav-footer {
             display: flex;
             justify-content: space-between;
