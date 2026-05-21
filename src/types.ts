@@ -11,6 +11,8 @@ export interface DocsConfig {
     version?: string
     /** Theme overrides */
     theme?: ThemeConfig
+    /** Path to favicon asset (png, ico, svg, etc.) */
+    favicon?: string
 }
 
 export type ThemePreset = 'default' | 'catppuccin' | 'nord' | 'rose-pine' | 'synz'

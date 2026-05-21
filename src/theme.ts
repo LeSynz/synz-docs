@@ -37,6 +37,13 @@ export function renderPage(options: {
 }): string {
     const { content, nav, title, currentPath, config } = options
 
+    const faviconTag = config.favicon
+        ? `
+        <link rel="icon" href="${config.basePath}${config.favicon}">
+        <link rel="shortcut icon" href="${config.basePath}${config.favicon}">
+      `
+        : ''
+
     const preset = presets[config.theme?.preset || 'default']
     const accent = config.theme?.accentColor || preset.accent
     const logo = config.theme?.logo || config.title
@@ -137,6 +144,7 @@ export function renderPage(options: {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title} — ${config.title}</title>
+    ${faviconTag}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     ${synzFont}
     <style>
