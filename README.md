@@ -1,280 +1,155 @@
 # synz-docs
 
-A Bun-native [Hono](https://hono.dev?utm_source=chatgpt.com) middleware that generates a full documentation site from a folder of markdown files. No build step, no config files - just point it at a directory and go.
+Hono middleware for Bun that serves a documentation site from a folder of
+markdown files. There's no build step and no config file: point it at a
+directory and mount it.
 
-Live showcase available at [labs.synz.xyz/showcase/docs](https://labs.synz.xyz/showcase/docs?utm_source=chatgpt.com)
+There's a live demo at [labs.synz.xyz/showcase/docs](https://labs.synz.xyz/showcase/docs).
 
-```typescript id="k3m8pv"
-import { docs } from 'synz-docs'
+```typescript
+import { Hono } from 'hono';
+import { docs } from 'synz-docs';
 
-app.route('/docs', docs({
-    dir: './docs',
-    title: 'My Project'
-}))
-```
-
----
-
-# features
-
-* Markdown rendered with syntax highlighting via [Shiki](https://shiki.style?utm_source=chatgpt.com)
-* Sidebar navigation auto-generated from your folder structure
-* Frontmatter support for titles, ordering, descriptions, and visibility
-* Prev/next page navigation with section labels
-* Anchor links on headings
-* Built-in theme presets:
-
-  * `default`
-  * `catppuccin`
-  * `nord`
-  * `rose-pine`
-  * `synz`
-* Fully customisable theme system via CSS variables
-* Configurable header subtitle or version badge
-* Built-in favicon support
-* Zero build step — reads files at startup
-
----
-
-# install
-
-```bash id="b7v2qn"
-bun add synz-docs
-```
-
----
-
-# usage
-
-```typescript id="u5n8rx"
-import { Hono } from 'hono'
-import { docs } from 'synz-docs'
-
-const app = new Hono()
+const app = new Hono();
 
 app.route('/docs', docs({
-    dir: './docs',
-    title: 'My Project',
-    basePath: '/docs'
-}))
+	dir: './docs',
+	title: 'My Project',
+}));
 
-export default app
+export default app;
 ```
 
----
+## What you get
 
-# folder structure
+- Syntax highlighting with [Shiki](https://shiki.style)
+- A sidebar built from your folder structure
+- Frontmatter for titles, ordering and hiding pages
+- Previous and next links at the bottom of each page
+- Anchor links on headings
+- Five themes, plus CSS variables and custom CSS for your own
+- A header subtitle or version badge, and a favicon
 
-Your `dir` folder maps directly to routes and sidebar sections:
+Files are read once, when `docs()` is called, so restart the server after adding
+or renaming a page.
 
-```txt id="n4q1lk"
+## Install
+
+```bash
+bun add hono synz-docs
+```
+
+It needs Bun, since it serves the favicon with `hono/bun` and the package
+ships TypeScript source.
+
+## Folder structure
+
+Your docs folder decides the routes and the sidebar:
+
+```
 docs/
-├── index.md              → /docs
-├── getting-started.md    → /docs/getting-started
-└── api/
-    ├── overview.md       → /docs/api/overview
-    └── endpoints.md      → /docs/api/endpoints
+  index.md              /docs
+  getting-started.md    /docs/getting-started
+  api/
+    overview.md         /docs/api/overview
+    endpoints.md        /docs/api/endpoints
 ```
 
-Folders become sidebar section headers. Files become pages.
+Folders turn into sidebar sections and files into pages.
 
+## Frontmatter
+
+```markdown
 ---
-
-# frontmatter
-
-Each markdown file can include a frontmatter block at the top:
-
-```markdown id="d9r5mw"
----
-title: Getting Started
+title: Getting started
 order: 1
-description: How to get up and running
 hidden: false
 ---
-
-# Getting Started
-...
 ```
 
-| Field       | Type    | Description                                                                 |
-| ----------- | ------- | --------------------------------------------------------------------------- |
-| title       | string  | Page title shown in the sidebar and browser tab. Falls back to filename.    |
-| order       | number  | Sort order within the section. Lower numbers appear first.                  |
-| description | string  | Short description used for meta tags.                                       |
-| hidden      | boolean | Hide this page from the sidebar while keeping it accessible via direct URL. |
+| Field | Type | |
+| --- | --- | --- |
+| `title` | string | Page title, in the sidebar and the browser tab. Defaults to the file name. |
+| `order` | number | Position within its section, lowest first. Pages without one go last. |
+| `description` | string | A short summary, used for the page's meta description tag. |
+| `hidden` | boolean | Leave the page out of the sidebar. It's still reachable by URL. |
 
----
+## Themes
 
-# themes
-
-Pick a built-in preset or build your own.
-
-```typescript id="x2m7ke"
+```typescript
 docs({
-    dir: './docs',
-    title: 'My Project',
-    theme: {
-        preset: 'catppuccin'
-    }
-})
+	dir: './docs',
+	title: 'My Project',
+	theme: { preset: 'catppuccin' },
+});
 ```
 
-Available presets:
+The presets are `default`, `catppuccin`, `nord`, `rose-pine` and `synz`.
 
-```txt id="p8v4ru"
-default
-catppuccin
-nord
-rose-pine
-synz
-```
+`accentColor` replaces just the accent color of the preset:
 
-Override just the accent color:
-
-```typescript id="z6w1ty"
+```typescript
 theme: {
-    preset: 'nord',
-    accentColor: '#a3be8c'
+	preset: 'nord',
+	accentColor: '#a3be8c',
 }
 ```
 
-Override CSS variables directly:
+`vars` overrides CSS variables, and `customCss` is added after the base styles:
 
-```typescript id="m3n9qx"
+```typescript
 theme: {
-    vars: {
-        '--bg': '#0f0f0f',
-        '--text': '#ffffff',
-        '--font': '"IBM Plex Mono", monospace'
-    }
+	vars: {
+		'--bg': '#0f0f0f',
+		'--font': '"IBM Plex Mono", monospace',
+	},
+	customCss: `
+		.header-logo { font-size: 1.25rem; }
+	`,
 }
 ```
 
-Inject custom CSS:
+## Options
 
-```typescript id="f7q2ds"
-theme: {
-    customCss: `
-        .header-logo {
-            font-size: 1.25rem;
-        }
-    `
-}
-```
-
----
-
-# favicon support
-
-synz-docs can automatically serve and inject a favicon.
-
-```typescript id="r4m8cz"
+```typescript
 docs({
-    dir: './docs',
-    title: 'My Project',
-    favicon: './docs/favicon.png'
-})
+	dir: './docs', // required, folder of markdown files
+	title: 'My Project', // required, header and page titles
+	basePath: '/docs', // where it's mounted, default '/docs'
+	subtitle: 'API Docs', // next to the logo, default 'docs'
+	version: 'v1.0.0', // badge shown instead of the subtitle
+	favicon: './docs/favicon.png', // png, ico, svg or webp
+	theme: {
+		preset: 'default',
+		accentColor: '#58a6ff',
+		logo: 'MY DOCS', // header text, defaults to the title
+		vars: {},
+		customCss: '',
+	},
+});
 ```
 
-Supported formats include:
+`basePath` should match the path you mount the middleware on. The favicon is
+served at `<basePath>/favicon.<ext>`, and its path is read from where you run
+the server.
 
-```txt id="h5v9ke"
-.png
-.ico
-.svg
-.webp
+## Callouts
+
+A blockquote is rendered as a callout:
+
+```markdown
+> Use these for tips, warnings and notes.
 ```
 
-The favicon is automatically exposed through the mounted docs route.
+## Development
 
-Example:
-
-```txt id="w8n3pl"
-/docs/favicon.png
+```bash
+bun install
+bun run dev        # serves example/docs at http://localhost:3000
+bun run typecheck
+bun test
 ```
 
----
+## License
 
-# configuration
-
-```typescript id="t6q4nv"
-docs({
-    dir: './docs',           // required — path to markdown files
-
-    title: 'My Project',     // required — shown in header and page titles
-
-    basePath: '/docs',       // optional — mounted route (default: '/docs')
-
-    subtitle: 'API Docs',    // optional — text shown next to logo
-
-    version: 'v1.0.0',       // optional — version badge shown instead of subtitle
-
-    favicon: './docs/favicon.png', // optional — favicon asset path
-
-    theme: {
-        preset: 'default',        // optional — built-in theme preset
-
-        accentColor: '#58a6ff',   // optional — overrides preset accent color
-
-        logo: 'MY DOCS',          // optional — header logo text (default: title)
-
-        vars: {                   // optional — CSS variable overrides
-            '--bg': '#0f0f0f',
-            '--font': '"IBM Plex Mono", monospace'
-        },
-
-        customCss: `              // optional — injected after base styles
-            .header-logo {
-                font-size: 1.25rem;
-            }
-        `
-    }
-})
-```
-
----
-
-# callouts
-
-Blockquotes are rendered as styled callout blocks:
-
-```markdown id="u8p1re"
-> This is a callout. Use it for tips, warnings, or notes.
-```
-
----
-
-# changelog
-
-## 0.4.0
-
-* Added built-in favicon support
-* Added automatic favicon asset serving
-* Added support for `.png`, `.ico`, `.svg`, and `.webp` favicons
-
-## 0.3.0
-
-* Added `synz` theme preset matching the synz.xyz terminal aesthetic
-* Added `subtitle` config option
-* Added `version` config option
-
-## 0.2.0
-
-* Added built-in theme presets:
-
-  * `default`
-  * `catppuccin`
-  * `nord`
-  * `rose-pine`
-* Prev/next navigation now shows section labels
-* `accentColor` now overrides preset accent instead of replacing all theme vars
-
-## 0.1.0
-
-* Initial release
-
----
-
-# license
-
-MIT
+MIT. See [CHANGELOG.md](CHANGELOG.md) for what changed in each version.

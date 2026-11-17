@@ -1,0 +1,55 @@
+body { cursor: crosshair; }
+
+.scanlines {
+	position: fixed;
+	inset: 0;
+	z-index: 100;
+	pointer-events: none;
+	background: repeating-linear-gradient(
+		0deg,
+		transparent,
+		transparent 2px,
+		rgba(0, 0, 0, 0.08) 2px,
+		rgba(0, 0, 0, 0.08) 4px
+	);
+}
+
+.grid-bg {
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+	background-image:
+		linear-gradient(var(--border) 1px, transparent 1px),
+		linear-gradient(90deg, var(--border) 1px, transparent 1px);
+	background-size: 48px 48px;
+	opacity: 0.5;
+}
+
+.sidebar { background: transparent; }
+
+.header-logo .logo-accent {
+	font-family: var(--font-display);
+	font-weight: 800;
+	letter-spacing: 0.15em;
+}
+
+.nav-link.active {
+	border-left: 2px solid var(--accent);
+	color: var(--accent);
+	background: transparent;
+}
+
+.doc-content h1 {
+	font-family: var(--font-display);
+	font-weight: 800;
+}
+
+.doc-content h2 {
+	font-family: var(--font-display);
+	font-weight: 700;
+}
+
+.doc-content code {
+	color: var(--accent);
+}

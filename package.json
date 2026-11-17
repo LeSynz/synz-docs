@@ -1,33 +1,50 @@
 {
-  "name": "synz-docs",
-  "version": "0.4.0",
-  "description": "A Bun-native Hono middleware that generates a docs site from markdown files",
-  "module": "src/index.ts",
-  "main": "src/index.ts",
-  "type": "module",
-  "private": false,
-  "exports": {
-    ".": "./src/index.ts"
-  },
-  "keywords": [
-    "hono",
-    "docs",
-    "markdown",
-    "middleware"
-  ],
-  "author": "LeSynz",
-  "license": "MIT",
-  "devDependencies": {
-    "@types/bun": "latest",
-    "@types/node": "^25.8.0"
-  },
-  "peerDependencies": {
-    "typescript": "^5",
-    "hono": "^4"
-  },
-  "dependencies": {
-    "gray-matter": "^4.0.3",
-    "marked": "^18.0.3",
-    "shiki": "^4.0.2"
-  }
+    "name": "synz-docs",
+    "version": "0.5.0",
+    "description": "Hono middleware for Bun that serves a documentation site from a folder of markdown files",
+    "license": "MIT",
+    "author": "LeSynz",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/LeSynz/synz-docs.git"
+    },
+    "homepage": "https://github.com/LeSynz/synz-docs#readme",
+    "bugs": "https://github.com/LeSynz/synz-docs/issues",
+    "keywords": [
+        "hono",
+        "bun",
+        "docs",
+        "markdown",
+        "middleware"
+    ],
+    "type": "module",
+    "module": "src/index.ts",
+    "exports": {
+        ".": "./src/index.ts"
+    },
+    "files": [
+        "src"
+    ],
+    "engines": {
+        "bun": ">=1.4"
+    },
+    "scripts": {
+        "dev": "bun --watch example/index.ts",
+        "typecheck": "tsc --noEmit",
+        "test": "bun test"
+    },
+    "dependencies": {
+        "gray-matter": "^4.0.3",
+        "marked": "^18.2.1",
+        "shiki": "^4.6.0"
+    },
+    "devDependencies": {
+        "@types/bun": "^1.4.4",
+        "@types/node": "^26.6.6",
+        "hono": "^4.13.19",
+        "typescript": "^7.0.2"
+    },
+    "peerDependencies": {
+        "hono": "^4"
+    }
 }

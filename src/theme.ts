@@ -1,529 +1,154 @@
-import type { NavItem, DocsConfig } from './types'
-import { presets } from './themes'
+import baseCss from './styles/base.css' with { type: 'text' };
+import synzCss from './styles/synz.css' with { type: 'text' };
+import { escapeHtml } from './escape';
+import { presets } from './themes';
+import type { DocsConfig, NavItem } from './types';
 
 function flattenNav(items: NavItem[], parentLabel = ''): NavItem[] {
-    return items.flatMap(item =>
-        item.children
-            ? flattenNav(item.children, item.label)
-            : [{ ...item, parentLabel }]
-    )
+	return items.flatMap((item) =>
+		item.children ? flattenNav(item.children, item.label) : [{ ...item, parentLabel }],
+	);
 }
 
 function renderNavItems(items: NavItem[], currentPath: string, depth = 0): string {
-    return items.map(item => {
-        if (item.children && item.children.length > 0) {
-            return `
-                <div class="nav-group" style="--depth: ${depth}">
-                    <div class="nav-group-label">${item.label}</div>
-                    <ul class="nav-group-items">
-                        ${renderNavItems(item.children, currentPath, depth + 1)}
-                    </ul>
-                </div>`
-        }
+	return items
+		.map((item) => {
+			if (item.children?.length) {
+				return `<li class="nav-group" style="--depth: ${depth}">
+					<div class="nav-group-label">${escapeHtml(item.label)}</div>
+					<ul class="nav-group-items">${renderNavItems(item.children, currentPath, depth + 1)}</ul>
+				</li>`;
+			}
 
-        const active = item.path === currentPath
-        return `<li>
-            <a href="${item.path}" class="nav-link ${active ? 'active' : ''}">${item.label}</a>
-        </li>`
-    }).join('')
+			const active = item.path === currentPath ? ' active' : '';
+			return `<li><a href="${escapeHtml(item.path)}" class="nav-link${active}">${escapeHtml(item.label)}</a></li>`;
+		})
+		.join('');
+}
+
+function pageLink(item: NavItem | undefined, direction: 'prev' | 'next'): string {
+	if (!item) return '<div></div>';
+
+	const section = item.parentLabel ? `${escapeHtml(item.parentLabel)} - ` : '';
+	return `<a href="${escapeHtml(item.path)}" class="doc-nav-btn doc-nav-${direction}">
+		<span class="doc-nav-label">${direction === 'prev' ? 'Previous' : 'Next'}</span>
+		<span class="doc-nav-title">${section}${escapeHtml(item.label)}</span>
+	</a>`;
 }
 
 export function renderPage(options: {
-    content: string
-    nav: NavItem[]
-    title: string
-    currentPath: string
-    config: DocsConfig
+	content: string;
+	nav: NavItem[];
+	title: string;
+	description?: string;
+	currentPath: string;
+	config: DocsConfig;
 }): string {
-    const { content, nav, title, currentPath, config } = options
+	const { content, nav, title, description, currentPath, config } = options;
 
-    const faviconTag = config.favicon
-        ? `
-        <link rel="icon" href="${config.basePath}${config.favicon}">
-        <link rel="shortcut icon" href="${config.basePath}${config.favicon}">
-      `
-        : ''
+	const presetName = config.theme?.preset || 'default';
+	const preset = presets[presetName];
+	const accent = config.theme?.accentColor || preset.accent;
+	const isSynz = presetName === 'synz';
 
-    const preset = presets[config.theme?.preset || 'default']
-    const accent = config.theme?.accentColor || preset.accent
-    const logo = config.theme?.logo || config.title
-    const isSynz = (config.theme?.preset || 'default') === 'synz'
-    const headerRight = config.version
-        ? `<span class="header-version">${config.version}</span>`
-        : `<div class="header-divider"></div><span class="header-title">${config.subtitle || 'docs'}</span>`
-    const customVars = config.theme?.vars
-        ? Object.entries(config.theme.vars).map(([k, v]) => `        ${k}: ${v};`).join('\n')
-        : ''
-    const customCss = config.theme?.customCss || ''
+	const siteTitle = escapeHtml(config.title);
+	const logo = escapeHtml(config.theme?.logo || config.title);
+	const basePath = config.basePath || '/docs';
 
-    const synzFont = isSynz
-        ? `<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">`
-        : `<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">`
+	const headerRight = config.version
+		? `<span class="header-version">${escapeHtml(config.version)}</span>`
+		: `<div class="header-divider"></div><span class="header-title">${escapeHtml(config.subtitle || 'docs')}</span>`;
 
-    const fontVars = isSynz
-        ? `--font: 'Share Tech Mono', monospace;
-            --font-mono: 'Share Tech Mono', monospace;
-            --font-display: 'Syne', sans-serif;`
-        : `--font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;`
+	const faviconTag = config.favicon
+		? `<link rel="icon" href="${escapeHtml(config.favicon)}">`
+		: '';
 
-    const synzExtras = isSynz ? `
-        body { cursor: crosshair; }
+	const descriptionTag = description
+		? `<meta name="description" content="${escapeHtml(description)}">`
+		: '';
 
-        .scanlines {
-            position: fixed;
-            inset: 0;
-            z-index: 100;
-            pointer-events: none;
-            background: repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 2px,
-                rgba(0,0,0,0.08) 2px,
-                rgba(0,0,0,0.08) 4px
-            );
-        }
+	const fonts = isSynz
+		? 'family=Share+Tech+Mono&family=Syne:wght@400;700;800'
+		: 'family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500';
 
-        .grid-bg {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-            background-image:
-                linear-gradient(var(--border) 1px, transparent 1px),
-                linear-gradient(90deg, var(--border) 1px, transparent 1px);
-            background-size: 48px 48px;
-            opacity: 0.5;
-        }
+	const fontVars = isSynz
+		? `--font: 'Share Tech Mono', monospace;
+			--font-mono: 'Share Tech Mono', monospace;
+			--font-display: 'Syne', sans-serif;`
+		: `--font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+			--font-mono: 'JetBrains Mono', 'Fira Code', monospace;`;
 
-        header {
-            background: rgba(8,10,8,0.92) !important;
-        }
+	const customVars = Object.entries(config.theme?.vars ?? {})
+		.map(([name, value]) => `${name}: ${value};`)
+		.join('\n');
 
-        .header-logo .logo-accent {
-            font-family: var(--font-display);
-            font-weight: 800;
-            letter-spacing: 0.15em;
-        }
+	const flat = flattenNav(nav).filter((item) => item.path);
+	const index = flat.findIndex((item) => item.path === currentPath);
+	const prev = index > 0 ? flat[index - 1] : undefined;
+	const next = index >= 0 ? flat[index + 1] : undefined;
 
-        .nav-link.active {
-            border-left: 2px solid var(--accent);
-            color: var(--accent);
-            background: transparent;
-        }
+	const navHtml = `<ul class="nav-root">${renderNavItems(nav, currentPath)}</ul>`;
 
-        .doc-content h1 {
-            font-family: var(--font-display);
-            font-weight: 800;
-        }
-
-        .doc-content h2 {
-            font-family: var(--font-display);
-            font-weight: 700;
-        }
-
-        .doc-content code {
-            color: var(--accent);
-        }
-
-        .doc-content .shiki {
-            background: var(--bg-secondary) !important;
-        }
-    ` : ''
-
-    const synzHtml = isSynz ? `<div class="scanlines"></div><div class="grid-bg"></div>` : ''
-
-    const flat = flattenNav(nav).filter(item => item.path)
-    const currentIndex = flat.findIndex(item => item.path === currentPath)
-    const prev = flat[currentIndex - 1] ?? null
-    const next = flat[currentIndex + 1] ?? null
-
-    return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${title} — ${config.title}</title>
-    ${faviconTag}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    ${synzFont}
-    <style>
-        :root {
-            --accent: ${accent};
-            --accent-hover: color-mix(in srgb, ${accent} 80%, white);
-            --accent-subtle: color-mix(in srgb, ${accent} 12%, transparent);
-            --bg: ${preset.bg};
-            --bg-secondary: ${preset.bgSecondary};
-            --bg-tertiary: ${preset.bgTertiary};
-            --border: ${preset.border};
-            --border-subtle: ${preset.borderSubtle};
-            --text: ${preset.text};
-            --text-secondary: ${preset.textSecondary};
-            --text-tertiary: ${preset.textTertiary};
-            ${fontVars}
-${customVars}
-        }
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; font-size: 16px; }
-
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: var(--font);
-            min-height: 100vh;
-            line-height: 1.6;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        header {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            z-index: 50;
-            height: 64px;
-            display: flex;
-            align-items: center;
-            padding: 0 1.5rem;
-            border-bottom: 1px solid var(--border-subtle);
-            background: rgba(13, 17, 23, 0.95);
-            backdrop-filter: blur(12px);
-            gap: 1rem;
-        }
-
-        .header-logo {
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: var(--text);
-            text-decoration: none;
-            letter-spacing: -0.01em;
-        }
-
-        .header-logo .logo-accent { color: var(--accent); }
-
-        .header-divider {
-            width: 1px;
-            height: 20px;
-            background: var(--border);
-        }
-
-        .header-title {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            font-weight: 400;
-        }
-
-        .layout {
-            display: flex;
-            padding-top: 64px;
-            min-height: 100vh;
-        }
-
-        .sidebar {
-            width: 272px;
-            flex-shrink: 0;
-            border-right: 1px solid var(--border-subtle);
-            padding: 1.5rem 0;
-            position: fixed;
-            top: 64px;
-            bottom: 0;
-            overflow-y: auto;
-            background: var(--bg);
-        }
-
-        .sidebar::-webkit-scrollbar { width: 3px; }
-        .sidebar::-webkit-scrollbar-track { background: transparent; }
-        .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-        .nav-group {
-            margin-bottom: 0.25rem;
-            padding: 0 0.75rem;
-        }
-
-        .nav-group-label {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: var(--text-tertiary);
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            padding: 0.5rem 0.75rem 0.35rem;
-            padding-left: calc(0.75rem + var(--depth, 0) * 0.75rem);
-        }
-
-        .nav-group-items { list-style: none; }
-
-        .nav-link {
-            display: block;
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            text-decoration: none;
-            padding: 0.3rem 0.75rem;
-            border-radius: 6px;
-            transition: color 0.15s, background 0.15s;
-            font-weight: 400;
-        }
-
-        .nav-link:hover {
-            color: var(--text);
-            background: var(--bg-tertiary);
-        }
-
-        .nav-link.active {
-            color: var(--accent);
-            background: var(--accent-subtle);
-            font-weight: 500;
-        }
-
-        .content {
-            flex: 1;
-            margin-left: 272px;
-            padding: 2.5rem 3rem 5rem;
-            min-width: 0;
-        }
-
-        .doc-content { max-width: 720px; }
-
-        .doc-content h1 {
-            font-size: 1.875rem;
-            font-weight: 700;
-            color: var(--text);
-            letter-spacing: -0.025em;
-            line-height: 1.25;
-            margin-bottom: 0.75rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .doc-content h2 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--text);
-            letter-spacing: -0.015em;
-            margin-top: 2.5rem;
-            margin-bottom: 0.75rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border-subtle);
-        }
-
-        .doc-content h3 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text);
-            margin-top: 1.75rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .heading-anchor {
-            color: var(--text-tertiary);
-            text-decoration: none;
-            margin-right: 0.4rem;
-            opacity: 0;
-            transition: opacity 0.15s;
-            font-weight: 400;
-        }
-
-        h1:hover .heading-anchor,
-        h2:hover .heading-anchor,
-        h3:hover .heading-anchor { opacity: 1; }
-
-        .doc-content p {
-            color: var(--text-secondary);
-            line-height: 1.75;
-            margin-bottom: 1rem;
-            font-size: 0.9375rem;
-        }
-
-        .doc-content a {
-            color: var(--accent);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .doc-content a:hover { text-decoration: underline; }
-
-        .doc-content ul, .doc-content ol {
-            color: var(--text-secondary);
-            font-size: 0.9375rem;
-            line-height: 1.75;
-            margin-bottom: 1rem;
-            padding-left: 1.5rem;
-        }
-
-        .doc-content li { margin-bottom: 0.3rem; }
-
-        .doc-content code {
-            font-family: var(--font-mono);
-            font-size: 0.8125rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 0.125rem 0.375rem;
-            color: var(--text);
-        }
-
-        .doc-content pre {
-            margin-bottom: 1.25rem;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .doc-content pre code {
-            background: none;
-            border: none;
-            padding: 0;
-            border-radius: 0;
-            font-size: 0.8125rem;
-        }
-
-        .doc-content .shiki {
-            padding: 1.25rem 1.5rem;
-            font-size: 0.8125rem;
-            line-height: 1.7;
-            overflow-x: auto;
-            background: var(--bg-secondary) !important;
-        }
-
-        .doc-content blockquote.doc-callout {
-            border-left: 3px solid var(--accent);
-            background: var(--accent-subtle);
-            padding: 0.875rem 1.125rem;
-            margin-bottom: 1.25rem;
-            border-radius: 0 6px 6px 0;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            line-height: 1.7;
-        }
-
-        .doc-content table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 1.5rem;
-            font-size: 0.875rem;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .doc-content th {
-            text-align: left;
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-            padding: 0.625rem 1rem;
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .doc-content td {
-            color: var(--text-secondary);
-            padding: 0.625rem 1rem;
-            border-bottom: 1px solid var(--border-subtle);
-            vertical-align: top;
-        }
-
-        .doc-content tr:last-child td { border-bottom: none; }
-
-        .doc-content hr {
-            border: none;
-            border-top: 1px solid var(--border-subtle);
-            margin: 2rem 0;
-        }
-
-        .doc-nav-footer {
-            display: flex;
-            justify-content: space-between;
-            gap: 1rem;
-            margin-top: 4rem;
-            padding-top: 2rem;
-            border-top: 1px solid var(--border-subtle);
-            max-width: 720px;
-        }
-
-        .doc-nav-btn {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-            padding: 0.875rem 1.25rem;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            text-decoration: none;
-            transition: border-color 0.15s, background 0.15s;
-            max-width: 48%;
-        }
-
-        .doc-nav-btn:hover {
-            border-color: var(--accent);
-            background: var(--accent-subtle);
-            text-decoration: none;
-        }
-
-        .doc-nav-next { text-align: right; margin-left: auto; }
-
-        .doc-nav-label {
-            font-size: 0.75rem;
-            color: var(--text-tertiary);
-            font-weight: 500;
-        }
-
-        .doc-nav-title {
-            font-size: 0.875rem;
-            color: var(--accent);
-            font-weight: 500;
-        }
-
-        @media (max-width: 768px) {
-            .sidebar { display: none; }
-            .content { margin-left: 0; padding: 2rem 1.25rem; }
-            .doc-nav-btn { max-width: 100%; }
-        }
-
-        .header-version {
-            font-size: 0.65rem;
-            color: var(--text-tertiary);
-            border: 1px solid var(--border);
-            padding: 0.15rem 0.5rem;
-            border-radius: 4px;
-            letter-spacing: 0.05em;
-            font-family: var(--font-mono);
-        }
-
-        ${customCss}
-        ${synzExtras}
-    </style>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>${escapeHtml(title)} | ${siteTitle}</title>
+	${descriptionTag}
+	${faviconTag}
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?${fonts}&display=swap" rel="stylesheet">
+	<style>
+		:root {
+			--accent: ${accent};
+			--accent-hover: color-mix(in srgb, ${accent} 80%, white);
+			--accent-subtle: color-mix(in srgb, ${accent} 12%, transparent);
+			--bg: ${preset.bg};
+			--bg-secondary: ${preset.bgSecondary};
+			--bg-tertiary: ${preset.bgTertiary};
+			--border: ${preset.border};
+			--border-subtle: ${preset.borderSubtle};
+			--text: ${preset.text};
+			--text-secondary: ${preset.textSecondary};
+			--text-tertiary: ${preset.textTertiary};
+			${fontVars}
+			${customVars}
+		}
+${baseCss}
+${isSynz ? synzCss : ''}
+${config.theme?.customCss ?? ''}
+	</style>
 </head>
 <body>
-    ${synzHtml}
-    <header>
-        <a href="${config.basePath || '/docs'}" class="header-logo">
-            <span class="logo-accent">${logo}</span>
-        </a>
-        ${headerRight}
-    </header>
+	${isSynz ? '<div class="scanlines"></div><div class="grid-bg"></div>' : ''}
+	<header>
+		<a href="${escapeHtml(basePath)}" class="header-logo">
+			<span class="logo-accent">${logo}</span>
+		</a>
+		${headerRight}
+	</header>
 
-    <div class="layout">
-        <aside class="sidebar">
-            <nav>
-                ${renderNavItems(nav, currentPath)}
-            </nav>
-        </aside>
+	<div class="layout">
+		<aside class="sidebar">
+			<nav>${navHtml}</nav>
+		</aside>
 
-        <main class="content">
-            <div class="doc-content">
-                ${content}
-            </div>
-            <div class="doc-nav-footer">
-                ${prev ? `<a href="${prev.path}" class="doc-nav-btn doc-nav-prev">
-                    <span class="doc-nav-label">← Previous</span>
-                    <span class="doc-nav-title">${prev.parentLabel ? `${prev.parentLabel} - ` : ''}${prev.label}</span>
-                </a>` : '<div></div>'}
-                ${next ? `<a href="${next.path}" class="doc-nav-btn doc-nav-next">
-                    <span class="doc-nav-label">Next →</span>
-                    <span class="doc-nav-title">${next.parentLabel ? `${next.parentLabel} - ` : ''}${next.label}</span>
-                </a>` : '<div></div>'}
-            </div>
-        </main>
-    </div>
+		<main class="content">
+			<details class="mobile-nav">
+				<summary>Menu</summary>
+				<nav>${navHtml}</nav>
+			</details>
+			<div class="doc-content">
+				${content}
+			</div>
+			<div class="doc-nav-footer">
+				${pageLink(prev, 'prev')}
+				${pageLink(next, 'next')}
+			</div>
+		</main>
+	</div>
 </body>
-</html>`
+</html>`;
 }
